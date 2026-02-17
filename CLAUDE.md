@@ -23,6 +23,19 @@ Rscript scripts/coverage_report.R
 Rscript scripts/generate_data.R
 ```
 
+### Score Sample Data
+```bash
+Rscript scripts/score_data.R
+```
+
+## Scoring Methodology
+The scoring engine calculates fair, bias-free productivity scores (0-100) using three normalized dimensions:
+- **Activity Quality (33.3%)**: Calls, followups, and meetings, adjusted for tenure and territory size
+- **Conversion Efficiency (33.4%)**: Meetings-to-deals ratio and revenue per activity unit
+- **Revenue Contribution (33.3%)**: Quota attainment and revenue per deal closed
+
+Each dimension is percentile-ranked across all reps and periods, then combined using configurable weights. Default weights balance all three dimensions equally. See `R/calculate_scores.R` for implementation details.
+
 ## Development Workflow
 1. **Always read AGENTS.md before starting work** — it contains complete project conventions
 2. **Run tests after every change** — test-driven development expected
@@ -33,7 +46,7 @@ Rscript scripts/generate_data.R
 ## Phase Approach
 This project follows an iterative phase-based development approach:
 - **Phase 1** (COMPLETE): Data model + sample data + project scaffolding
-- **Phase 2**: Scoring engine with normalization + configurable weights
+- **Phase 2** (COMPLETE): Scoring engine with normalization + configurable weights
 - **Phase 3**: Shiny dashboard with rankings, visualizations, and live weight sliders
 - **Phase 4**: Quarto executive report + improvement suggestions engine
 

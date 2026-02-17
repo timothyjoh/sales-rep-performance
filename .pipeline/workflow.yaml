@@ -69,7 +69,7 @@ steps:
   - name: commit
     description: "Git commit + push"
     agent: bash
-    command: "git add -A && git commit -m 'Phase {{PHASE}} complete' && git push origin master"
+    command: "git add -A && git commit -m 'Phase {{PHASE}} complete' && git push origin main"
 
 # Usage tracking
 usage_check:

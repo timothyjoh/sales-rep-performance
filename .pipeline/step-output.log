@@ -1,45 +1,54 @@
-Perfect! I've written a comprehensive reflection for Phase 1. Let me create a brief summary of what I've delivered:
+Perfect! I've written a comprehensive reflection document for Phase 2. Let me summarize what I've captured:
 
----
+## Phase 2 Reflection Summary
 
-# Phase 1 Reflection Complete
+### ✅ What Went Well
+- **Clean architecture**: 4 modular R files with excellent separation of concerns
+- **Excellent test coverage**: 147 tests passing with 100% line coverage
+- **Mathematical correctness**: Percentile-based scoring works correctly
+- **Code quality**: Perfect adherence to tidyverse conventions
+- **Vertical slice delivered**: `scored_reps.csv` demonstrates end-to-end pipeline
+- **Performance**: Far exceeds requirements (80 rows scored nearly instantly)
 
-I've written the reflection document to `docs/phases/phase-1/REFLECTIONS.md`. Here's what it covers:
+### ❌ What Didn't Work
+- **Zero quota bug**: Division by zero not caught (tested zero revenue instead of zero quota)
+- **Weak test assertions**: Many tests only check range 0-100, not mathematical correctness
+- **Performance not formally validated**: Requirement assumed met but not tested
+- **Debugging tradeoff**: Intermediate columns removed, making troubleshooting harder
 
-## Key Highlights
+### 📋 Spec Compliance
+- **13/14 requirements met** as spec'd
+- **1 deviation**: Zero quota edge case missed (REVIEW.md caught it)
+- **Nothing deferred** except CLI args (intentionally deferred to Phase 3)
 
-### What Went Well ✅
-- Clean greenfield start with solid R package foundation
-- Comprehensive documentation (AGENTS.md) enables instant developer productivity
-- 100% test coverage with meaningful assertions (no mock abuse)
-- Realistic sample data with tenure-based variance
-- Iterative review-fix cycle caught 5 critical issues before they propagated
+### 🔮 Looking Forward to Phase 3
 
-### What Didn't Work ❌
-- Test runner initially misconfigured (tried to load uninstalled package)
-- Missing rprojroot dependency ("works on my machine" problem)
-- Weak test assertions (used `is.numeric()` when should use `is.integer()`)
-- .gitignore polluted with irrelevant Node.js patterns
-- Profile distribution test too permissive (accepted any distribution >10%)
+**What to build next:** Shiny dashboard with:
+1. Data upload widget (let users upload CSV)
+2. Rankings table with score breakdowns
+3. Live weight sliders (auto-normalize to sum = 1.0)
+4. Visual comparisons (bar charts, line charts)
+5. Filters (by rep, by period)
 
-### All Issues Fixed
-All 5 critical and 2 minor issues identified in REVIEW.md were systematically addressed in MUST-FIX.md and verified working.
+**Key recommendations:**
+- Add debug mode to preserve intermediate columns
+- Continue no-mock testing philosophy
+- Validate correctness with real data manually
+- Keep weight sliders simple with auto-normalization
+- Use `shinydashboard` + `plotly` for interactive UI
 
-## Phase 2 Recommendations
+**Technical debt to address:**
+1. Verify zero quota fix with integration test (HIGH priority)
+2. Add debug parameter for intermediate columns (MEDIUM)
+3. Add hand-calculated test cases (LOW)
+4. Add performance benchmark (LOW)
 
-The reflection provides **specific, actionable guidance** for Phase 2:
+**Process improvements:**
+- Write tests BEFORE implementation (TDD)
+- Check SPEC criteria line-by-line before marking complete
+- Add mathematical correctness checks to integration tests
+- Document design tradeoffs in roxygen comments
+- Run tests after every function (use auto-test)
+- Update STATUS.md throughout phase, not just at end
 
-1. **Scope**: Build scoring engine with normalization + configurable weights (no UI yet)
-2. **Priorities**: Normalization functions first → weight configuration → score calculation
-3. **Vertical slice**: Script that loads CSV, calculates scores, outputs scored CSV
-4. **Process improvements**: Validate PLAN assumptions early, document "why" for non-obvious decisions
-
-## Technical Debt Tracked
-
-Documented 4 low-risk items for future attention:
-- No integration test for CSV generation script
-- No boundary tests for edge inputs (n_reps=0, negatives)
-- Simple data generation model (sufficient for Phase 1, may need sophistication later)
-- No CI configuration yet (manual testing sufficient for now)
-
-**The reflection clearly states Phase 1 is COMPLETE and Phase 2 should build the scoring engine next.**
+The reflection provides clear, actionable guidance for Phase 3 while honestly documenting what worked and what didn't in Phase 2.

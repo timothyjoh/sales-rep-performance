@@ -37,30 +37,6 @@ Rscript -e "install.packages(c('dplyr', 'tibble', 'purrr', 'testthat', 'covr', '
 Rscript -e "library(dplyr); library(testthat); library(covr); cat('All dependencies installed\n')"
 ```
 
-## Project Structure
-
-```
-sales-rep-performance/
-├── DESCRIPTION                     # Package metadata and dependencies
-├── sales-rep-performance.Rproj     # RStudio project file
-├── R/                              # Source code
-│   └── generate_sample_data.R      # Data generation function
-├── tests/                          # Test suite
-│   ├── testthat.R                  # Test runner (standard testthat entry point)
-│   └── testthat/
-│       └── test-generate_sample_data.R  # Tests for data generation
-├── scripts/                        # Executable scripts
-│   ├── generate_data.R             # Generate sample CSV data
-│   └── coverage_report.R           # Generate code coverage report
-├── data/                           # Generated data files
-│   └── sample_reps.csv             # Sample sales rep data (20 reps x 4 quarters)
-├── docs/                           # Documentation and phase planning
-├── AGENTS.md                       # This file — developer guide
-├── CLAUDE.md                       # Agent instructions (references this file)
-├── BRIEF.md                        # Project requirements and business context
-└── README.md                       # Getting started guide
-```
-
 ## Running the Project
 
 ### Generate sample data
@@ -115,6 +91,39 @@ Rscript scripts/coverage_report.R
 - **40% mid-level reps** — tenure 13-36 months
 - **30% experienced reps** — tenure 37-120 months
 
+## Scoring Methodology
+
+### Overview
+The scoring engine produces fair, bias-free productivity scores (0-100) by normalizing raw metrics and combining three performance dimensions with configurable weights.
+
+### Normalization
+- **Tenure adjustment**: `tenure_factor = min(1.0, tenure_months / 60)` — new reps get scaled expectations, experienced reps (60+ months) have no adjustment
+- **Territory adjustment**: `territory_factor = territory_size / 100` — adjusts for territory size (100 accounts = baseline)
+- **Quota adjustment**: `quota_attainment = (revenue_generated / quota) * 100` — converts revenue to percentage, uncapped for overachievers
+
+### Dimension Scoring (0-100 scale)
+1. **Activity Quality** (33.3% weight): Composite of normalized calls, followups, and meetings. Uses percentile ranking across all reps/periods.
+2. **Conversion Efficiency** (33.4% weight): Average of meetings-to-deals ratio and revenue-per-activity, both percentile-ranked.
+3. **Revenue Contribution** (33.3% weight): Average of quota attainment and revenue-per-deal, both percentile-ranked.
+
+### Scored Data Model
+After scoring, data includes 4 new columns:
+
+| Column           | Type    | Range | Description                          |
+|------------------|---------|-------|--------------------------------------|
+| activity_score   | numeric | 0-100 | Activity quality dimension score     |
+| conversion_score | numeric | 0-100 | Conversion efficiency dimension score|
+| revenue_score    | numeric | 0-100 | Revenue contribution dimension score |
+| score            | numeric | 0-100 | Overall weighted productivity score  |
+
+### Expected Score Ranges
+- **0-25**: Low performer (bottom quartile)
+- **26-50**: Below average (second quartile)
+- **51-75**: Above average (third quartile)
+- **76-100**: High performer (top quartile)
+
+Scores are percentile-based, so distribution is roughly uniform across the 0-100 range.
+
 ## Coding Conventions
 
 ### Style Guide
@@ -145,6 +154,9 @@ Rscript -e "install.packages(c('dplyr', 'tibble', 'purrr', 'testthat', 'covr', '
 # Generate sample data
 Rscript scripts/generate_data.R
 
+# Calculate productivity scores
+Rscript scripts/score_data.R
+
 # Run tests
 Rscript -e "testthat::test_dir('tests/testthat')"
 
@@ -163,6 +175,41 @@ Ensure you're running commands from the project root directory (where DESCRIPTIO
 ### Tests fail with "could not find function"
 Ensure test files include `source(file.path(rprojroot::find_root("DESCRIPTION"), "R", "generate_sample_data.R"))` at the top
 
+## Project Structure
+
+```
+sales-rep-performance/
+├── DESCRIPTION                     # Package metadata and dependencies
+├── sales-rep-performance.Rproj     # RStudio project file
+├── R/                              # Source code
+│   ├── generate_sample_data.R      # Data generation function
+│   ├── scoring_utils.R             # Validation helpers and percentile ranking
+│   ├── normalization.R             # Tenure, territory, quota normalization
+│   ├── dimension_scoring.R         # Activity, conversion, revenue scoring
+│   └── calculate_scores.R          # Weight validation and scoring pipeline
+├── tests/                          # Test suite
+│   ├── testthat.R                  # Test runner (standard testthat entry point)
+│   └── testthat/
+│       ├── test-generate_sample_data.R  # Tests for data generation
+│       ├── test-scoring_utils.R         # Tests for validation helpers
+│       ├── test-normalization.R         # Tests for normalization functions
+│       ├── test-dimension_scoring.R     # Tests for dimension scoring
+│       ├── test-calculate_scores.R      # Tests for weight validation and pipeline
+│       └── test-integration.R           # End-to-end integration tests
+├── scripts/                        # Executable scripts
+│   ├── generate_data.R             # Generate sample CSV data
+│   ├── score_data.R                # Calculate productivity scores
+│   └── coverage_report.R           # Generate code coverage report
+├── data/                           # Generated data files
+│   ├── sample_reps.csv             # Sample sales rep data (20 reps x 4 quarters)
+│   └── scored_reps.csv             # Scored output (80 rows x 15 columns)
+├── docs/                           # Documentation and phase planning
+├── AGENTS.md                       # This file — developer guide
+├── CLAUDE.md                       # Agent instructions (references this file)
+├── BRIEF.md                        # Project requirements and business context
+└── README.md                       # Getting started guide
+```
+
 ## Phase Status
-**Current Phase:** Phase 1 — COMPLETE
-**Next Phase:** Phase 2 — Scoring Engine with Normalization
+**Current Phase:** Phase 2 — COMPLETE
+**Next Phase:** Phase 3 — Shiny Dashboard

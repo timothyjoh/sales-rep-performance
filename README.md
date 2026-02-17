@@ -82,6 +82,37 @@ Open `data/sample_reps.csv` in Excel, Google Sheets, or any spreadsheet app:
 
 Sample data includes mix of rep profiles: 30% new reps (low tenure), 40% mid-level, 30% experienced.
 
+## Scoring
+
+### Running the Scoring Engine
+Generate productivity scores for sample data:
+```bash
+Rscript scripts/score_data.R
+```
+
+This creates `data/scored_reps.csv` with four new score columns (0-100 scale):
+- `score` — Overall productivity score
+- `activity_score` — Activity quality dimension
+- `conversion_score` — Conversion efficiency dimension
+- `revenue_score` — Revenue contribution dimension
+
+### Scoring Methodology
+The engine implements fair, bias-free scoring through three steps:
+
+1. **Normalization**: Adjusts raw metrics for fairness
+   - Tenure adjustment: New reps (< 12 months) get scaled expectations
+   - Territory normalization: Adjusts for territory size (50-500 accounts)
+   - Quota normalization: Converts revenue to quota attainment percentage
+
+2. **Dimension Scoring**: Calculates three performance dimensions (0-100)
+   - Activity quality: Composite of calls, followups, meetings (adjusted for tenure/territory)
+   - Conversion efficiency: Meetings-to-deals ratio + revenue per activity
+   - Revenue contribution: Quota attainment + revenue per deal
+
+3. **Weighted Combination**: Combines dimensions with configurable weights (default: equal)
+
+All scores use percentile ranking across the entire dataset, ensuring fair comparison across time periods and experience levels.
+
 ## Project Status
 
 ### Phase 1: Project Foundation & Sample Data Generation — COMPLETE
@@ -91,10 +122,11 @@ Sample data includes mix of rep profiles: 30% new reps (low tenure), 40% mid-lev
 - Sample CSV data file with 20 reps across 4 quarters
 - Complete developer documentation
 
-### Phase 2: Scoring Engine — NEXT
-- Normalization logic for fair cross-tenure comparison
-- Configurable scoring weights (activity, conversion, revenue)
-- Score calculation functions with comprehensive tests
+### Phase 2: Scoring Engine — COMPLETE
+- Normalization functions (tenure, territory size, quota attainment)
+- Three dimension scores: activity quality, conversion efficiency, revenue contribution
+- Configurable weight system with validation
+- End-to-end scoring pipeline with 100% test coverage
 
 ### Phase 3: Shiny Dashboard
 - Interactive rep rankings with score breakdowns
@@ -115,6 +147,9 @@ Sample data includes mix of rep profiles: 30% new reps (low tenure), 40% mid-lev
 ```bash
 # Generate sample data
 Rscript scripts/generate_data.R
+
+# Calculate productivity scores
+Rscript scripts/score_data.R
 
 # Run tests
 Rscript -e "testthat::test_dir('tests/testthat')"
