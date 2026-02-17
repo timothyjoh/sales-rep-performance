@@ -7,6 +7,7 @@ format:
     toc-depth: 2
     code-fold: true
     embed-resources: true
+    self-contained: true
 date: "`r format(Sys.Date(), '%B %d, %Y')`"
 params:
   input_csv: "data/scored_reps.csv"
