@@ -9,9 +9,15 @@ LazyData: true
 Imports:
     dplyr,
     tibble,
-    purrr
+    purrr,
+    shiny,
+    shinydashboard,
+    DT,
+    plotly,
+    ggplot2
 Suggests:
     testthat (>= 3.0.0),
     covr,
-    rprojroot
+    rprojroot,
+    shinytest2
 Config/testthat/edition: 3

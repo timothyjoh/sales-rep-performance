@@ -36,7 +36,7 @@ A fair, bias-free sales rep productivity scoring system built in R. Normalizes p
 
 2. **Install R dependencies**
    ```bash
-   Rscript -e "install.packages(c('dplyr', 'tibble', 'purrr', 'testthat', 'covr', 'rprojroot'), repos='https://cloud.r-project.org/')"
+   Rscript -e "install.packages(c('dplyr', 'tibble', 'purrr', 'shiny', 'shinydashboard', 'DT', 'plotly', 'testthat', 'covr', 'rprojroot'), repos='https://cloud.r-project.org/')"
    ```
 
 3. **Verify installation**
@@ -113,6 +113,25 @@ The engine implements fair, bias-free scoring through three steps:
 
 All scores use percentile ranking across the entire dataset, ensuring fair comparison across time periods and experience levels.
 
+## Interactive Dashboard
+
+Launch the Shiny dashboard to explore rep performance interactively:
+
+```bash
+Rscript -e "shiny::runApp('app.R')"
+```
+
+**Features:**
+- Rankings table with sortable dimension scores
+- Live weight sliders for activity/conversion/revenue priorities
+- Dimension breakdown chart for top 10 reps
+- Trend chart tracking score progression over quarters
+- Rep and period filters
+- CSV export with timestamp
+- Debug mode to show intermediate normalization columns
+
+See AGENTS.md for detailed usage instructions.
+
 ## Project Status
 
 ### Phase 1: Project Foundation & Sample Data Generation — COMPLETE
@@ -128,9 +147,12 @@ All scores use percentile ranking across the entire dataset, ensuring fair compa
 - Configurable weight system with validation
 - End-to-end scoring pipeline with 100% test coverage
 
-### Phase 3: Shiny Dashboard
+### Phase 3: Shiny Dashboard — COMPLETE
 - Interactive rep rankings with score breakdowns
 - Live weight sliders for instant ranking updates
+- Dimension breakdown charts and trend visualizations
+- CSV upload, filtering, and export
+- Debug mode for troubleshooting
 
 ### Phase 4: Quarto Reports & Improvement Suggestions
 - Polished HTML/PDF executive reports

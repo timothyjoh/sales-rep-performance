@@ -43,6 +43,9 @@ validate_weights <- function(weights) {
 #' @param data A data frame with all required columns from sample_reps.csv
 #' @param weights Named numeric vector with dimension weights
 #'   (default: equal weighting)
+#' @param debug Logical flag to preserve intermediate normalization columns
+#'   (tenure_factor, territory_factor, quota_attainment). Default FALSE.
+#'   Use TRUE for troubleshooting unexpected scores.
 #'
 #' @return Input data with new columns: activity_score, conversion_score,
 #'   revenue_score, score
@@ -53,9 +56,11 @@ validate_weights <- function(weights) {
 #' scored_custom <- calculate_scores(
 #'   df, c(activity = 0.5, conversion = 0.3, revenue = 0.2)
 #' )
+#' scored_debug <- calculate_scores(df, debug = TRUE)
 calculate_scores <- function(
     data,
-    weights = c(activity = 0.333, conversion = 0.334, revenue = 0.333)) {
+    weights = c(activity = 0.333, conversion = 0.334, revenue = 0.333),
+    debug = FALSE) {
   required <- c("rep_id", "tenure_months", "territory_size", "quota",
                 "calls_made", "followups_done", "meetings_scheduled",
                 "deals_closed", "revenue_generated")
@@ -74,12 +79,19 @@ calculate_scores <- function(
     score_conversion() |>
     score_revenue()
 
-  # Calculate final weighted score and clean up intermediate columns
-  data_scored |>
+  # Calculate final weighted score
+  result <- data_scored |>
     dplyr::mutate(
       score = activity_score * weights["activity"] +
         conversion_score * weights["conversion"] +
         revenue_score * weights["revenue"]
-    ) |>
-    dplyr::select(-tenure_factor, -territory_factor, -quota_attainment)
+    )
+
+  # Remove intermediate columns unless debug mode enabled
+  if (!debug) {
+    result <- result |>
+      dplyr::select(-tenure_factor, -territory_factor, -quota_attainment)
+  }
+
+  result
 }

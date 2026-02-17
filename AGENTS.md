@@ -10,7 +10,10 @@ A sales rep productivity scoring system built in R. Generates fair, bias-free pe
 - **tidyverse** — Data wrangling (dplyr, tibble, purrr)
 - **testthat** — Unit testing framework (3rd edition)
 - **covr** — Code coverage reporting
-- Future: Shiny (dashboard), Quarto (reports), ggplot2 (visualizations)
+- **Shiny + shinydashboard** — Interactive dashboard
+- **DT** — Interactive data tables
+- **plotly** — Interactive charts with hover tooltips
+- Future: Quarto (reports)
 
 ## Prerequisites
 1. **R 4.0 or higher** installed
@@ -44,6 +47,12 @@ Rscript -e "library(dplyr); library(testthat); library(covr); cat('All dependenc
 Rscript scripts/generate_data.R
 ```
 **Output:** `data/sample_reps.csv` (80 rows: 20 reps x 4 quarters)
+
+### Launch interactive dashboard
+```bash
+Rscript -e "shiny::runApp('app.R')"
+```
+**Output:** Dashboard opens in browser at `http://127.0.0.1:XXXX`
 
 ## Running Tests
 
@@ -181,12 +190,14 @@ Ensure test files include `source(file.path(rprojroot::find_root("DESCRIPTION"),
 sales-rep-performance/
 ├── DESCRIPTION                     # Package metadata and dependencies
 ├── sales-rep-performance.Rproj     # RStudio project file
+├── app.R                              # Shiny dashboard (single-file app)
 ├── R/                              # Source code
 │   ├── generate_sample_data.R      # Data generation function
 │   ├── scoring_utils.R             # Validation helpers and percentile ranking
 │   ├── normalization.R             # Tenure, territory, quota normalization
 │   ├── dimension_scoring.R         # Activity, conversion, revenue scoring
-│   └── calculate_scores.R          # Weight validation and scoring pipeline
+│   ├── calculate_scores.R          # Weight validation and scoring pipeline
+│   └── shiny_helpers.R             # Dashboard helper functions (validation, weights)
 ├── tests/                          # Test suite
 │   ├── testthat.R                  # Test runner (standard testthat entry point)
 │   └── testthat/
@@ -195,7 +206,10 @@ sales-rep-performance/
 │       ├── test-normalization.R         # Tests for normalization functions
 │       ├── test-dimension_scoring.R     # Tests for dimension scoring
 │       ├── test-calculate_scores.R      # Tests for weight validation and pipeline
-│       └── test-integration.R           # End-to-end integration tests
+│       ├── test-integration.R           # End-to-end integration tests
+│       ├── test-shiny_helpers.R        # Tests for dashboard helper functions
+│       ├── test-app.R                  # shinytest2 E2E dashboard tests
+│       └── test-app-manual.R          # Manual test checklist for UX validation
 ├── scripts/                        # Executable scripts
 │   ├── generate_data.R             # Generate sample CSV data
 │   ├── score_data.R                # Calculate productivity scores
@@ -210,6 +224,55 @@ sales-rep-performance/
 └── README.md                       # Getting started guide
 ```
 
+## Dashboard Usage
+
+### Launching the App
+```bash
+Rscript -e "shiny::runApp('app.R')"
+```
+Your default browser will open automatically. If not, navigate to the URL shown in the console.
+
+### Uploading Custom Data
+1. Navigate to "Upload Data" tab
+2. Click "Choose CSV File"
+3. Select a CSV with required columns: rep_id, rep_name, tenure_months, calls_made, followups_done, meetings_scheduled, deals_closed, revenue_generated, quota, territory_size, period
+4. SUCCESS message confirms upload; ERROR message lists missing columns
+
+### Adjusting Scoring Weights
+- Use three sidebar sliders: Activity Quality, Conversion Efficiency, Revenue Contribution
+- Weights are auto-normalized to sum to 1.0 for scoring
+- Scores recalculate instantly (< 500ms for typical datasets)
+
+### Viewing Rankings and Scores
+- Rankings tab shows reps sorted by overall score (highest first)
+- Dimension breakdown chart shows top 10 entries with activity/conversion/revenue bars
+- Click column headers to sort by any dimension
+
+### Analyzing Trends Over Time
+- Trends tab shows score progression across quarters
+- Select 1-5 reps from checkbox list
+- Adjust weight sliders to see trend lines update
+
+### Filtering Data
+- Filter by Rep or Period using sidebar dropdowns
+- Click "Clear Filters" to reset
+- Charts and export respect active filters
+
+### Exporting Scored Data
+- Click "Export Scored Data (CSV)" on Rankings tab
+- File downloads with timestamp (e.g., scored_reps_2026-02-17.csv)
+- Export includes only currently displayed data (respects filters)
+
+### Debug Mode
+- Check "Debug Mode" in sidebar to show intermediate columns (tenure_factor, territory_factor, quota_attainment)
+- Useful for troubleshooting unexpected scores
+
+### Troubleshooting
+- **App won't launch**: Check dependencies installed (shiny, shinydashboard, DT, plotly)
+- **Scores look wrong**: Enable debug mode, inspect intermediate columns
+- **Upload fails**: Verify CSV has all 11 required columns (case-sensitive)
+- **Slow scoring**: Check console for timing logs; datasets > 1000 rows may exceed 500ms
+
 ## Phase Status
-**Current Phase:** Phase 2 — COMPLETE
-**Next Phase:** Phase 3 — Shiny Dashboard
+**Current Phase:** Phase 3 — COMPLETE
+**Next Phase:** Phase 4 — Quarto Executive Report

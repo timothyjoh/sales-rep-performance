@@ -164,6 +164,37 @@ test_that("calculate_scores errors on missing columns", {
   expect_error(calculate_scores(df), "Required columns missing")
 })
 
+test_that("debug mode preserves intermediate normalization columns", {
+  df <- tibble::tibble(
+    rep_id = "REP001",
+    rep_name = "Rep A",
+    tenure_months = 24,
+    calls_made = 50,
+    followups_done = 30,
+    meetings_scheduled = 10,
+    deals_closed = 3,
+    revenue_generated = 15000,
+    quota = 10000,
+    territory_size = 100,
+    period = "Q1-2025"
+  )
+
+  # Default: intermediate columns removed
+  result_default <- calculate_scores(df)
+  expect_false("tenure_factor" %in% names(result_default))
+  expect_false("territory_factor" %in% names(result_default))
+  expect_false("quota_attainment" %in% names(result_default))
+
+  # Debug mode: intermediate columns preserved
+  result_debug <- calculate_scores(df, debug = TRUE)
+  expect_true("tenure_factor" %in% names(result_debug))
+  expect_true("territory_factor" %in% names(result_debug))
+  expect_true("quota_attainment" %in% names(result_debug))
+
+  # Scores should be identical regardless of debug mode
+  expect_equal(result_default$score, result_debug$score)
+})
+
 test_that("calculate_scores preserves original columns", {
   df <- tibble::tibble(
     rep_id = c("REP001", "REP002"),
