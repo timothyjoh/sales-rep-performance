@@ -1,0 +1,9 @@
+node_modules/
+dist/
+db/swimlanes.db
+db/swimlanes.db-wal
+db/swimlanes.db-shm
+.astro/
+coverage/
+test-results/
+playwright-report/
