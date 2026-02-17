@@ -1,0 +1,271 @@
+---
+title: "Sales Rep Performance — Executive Report"
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 2
+    code-fold: true
+    embed-resources: true
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+params:
+  input_csv: "data/scored_reps.csv"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(knitr)
+
+# Set working directory to project root for consistent relative paths
+project_root <- rprojroot::find_root("DESCRIPTION")
+
+# Source suggestion engine
+source(file.path(project_root, "R", "generate_suggestions.R"))
+
+# Load scored data (resolve path relative to project root)
+input_path <- if (file.exists(params$input_csv)) {
+  params$input_csv
+} else {
+  file.path(project_root, params$input_csv)
+}
+scored_data <- read.csv(input_path, stringsAsFactors = FALSE)
+
+# Generate suggestions
+suggestions <- generate_suggestions(scored_data)
+
+# Calculate summary metrics
+total_reps <- length(unique(scored_data$rep_id))
+total_periods <- length(unique(scored_data$period))
+avg_score <- mean(scored_data$score, na.rm = TRUE)
+score_range <- range(scored_data$score, na.rm = TRUE)
+
+# Identify top performers (top 10 by average score across all periods)
+top_performers <- scored_data |>
+  group_by(rep_id, rep_name) |>
+  summarise(
+    avg_score = mean(score, na.rm = TRUE),
+    avg_activity = mean(activity_score, na.rm = TRUE),
+    avg_conversion = mean(conversion_score, na.rm = TRUE),
+    avg_revenue = mean(revenue_score, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(avg_score)) |>
+  head(10)
+```
+
+# Executive Summary
+
+**Analysis Period:** `r paste(unique(scored_data$period), collapse = ", ")`
+**Total Representatives Analyzed:** `r total_reps`
+**Average Performance Score:** `r round(avg_score, 1)`
+**Score Range:** `r round(score_range[1], 1)` – `r round(score_range[2], 1)`
+
+This report provides a comprehensive analysis of sales representative performance across activity quality, conversion efficiency, and revenue contribution. Scores are normalized (0-100 scale) and adjusted for tenure and territory size to ensure fair comparisons.
+
+---
+
+# Top Performers
+
+The following table shows the top 10 sales representatives by average performance score:
+
+```{r top-performers-table}
+top_performers_display <- top_performers |>
+  mutate(
+    avg_score = round(avg_score, 1),
+    avg_activity = round(avg_activity, 1),
+    avg_conversion = round(avg_conversion, 1),
+    avg_revenue = round(avg_revenue, 1)
+  )
+
+kable(
+  top_performers_display,
+  col.names = c("Rep ID", "Rep Name", "Overall Score",
+                "Activity", "Conversion", "Revenue"),
+  align = c("l", "l", "r", "r", "r", "r"),
+  caption = "Top 10 Sales Representatives (Average Across All Periods)"
+)
+```
+
+---
+
+# Score Distributions
+
+## Overall Performance Distribution
+
+```{r score-distribution-histogram}
+ggplot(scored_data, aes(x = score)) +
+  geom_histogram(bins = 20, fill = "#4A90E2", color = "white", alpha = 0.8) +
+  labs(
+    title = "Distribution of Overall Performance Scores",
+    x = "Overall Score (0-100)",
+    y = "Number of Rep-Period Observations"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    axis.title = element_text(size = 11)
+  )
+```
+
+## Dimension Score Breakdown
+
+```{r dimension-breakdown}
+dimension_summary <- scored_data |>
+  group_by(rep_id, rep_name) |>
+  summarise(
+    Activity = mean(activity_score, na.rm = TRUE),
+    Conversion = mean(conversion_score, na.rm = TRUE),
+    Revenue = mean(revenue_score, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(Activity + Conversion + Revenue)) |>
+  head(10)
+
+dimension_long <- dimension_summary |>
+  pivot_longer(
+    cols = c(Activity, Conversion, Revenue),
+    names_to = "Dimension",
+    values_to = "Score"
+  )
+
+ggplot(dimension_long,
+       aes(x = reorder(rep_name, -Score), y = Score, fill = Dimension)) +
+  geom_bar(stat = "identity", position = "dodge", alpha = 0.8) +
+  scale_fill_manual(values = c(
+    "Activity" = "#FF6B6B",
+    "Conversion" = "#4ECDC4",
+    "Revenue" = "#45B7D1"
+  )) +
+  labs(
+    title = "Dimension Scores by Top 10 Representatives",
+    x = "Representative",
+    y = "Average Score (0-100)",
+    fill = "Dimension"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    axis.title = element_text(size = 11),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "bottom"
+  )
+```
+
+---
+
+# Trend Analysis
+
+```{r trend-analysis, eval=(total_periods >= 2)}
+# Calculate score change from first to last period per rep
+trend_data <- scored_data |>
+  group_by(rep_id, rep_name) |>
+  arrange(period) |>
+  summarise(
+    first_score = first(score),
+    last_score = last(score),
+    score_change = last(score) - first(score),
+    .groups = "drop"
+  )
+
+top_improvers <- trend_data |>
+  arrange(desc(score_change)) |>
+  head(5)
+
+top_decliners <- trend_data |>
+  arrange(score_change) |>
+  head(5)
+
+# Plot improvers
+improver_data <- scored_data |>
+  filter(rep_id %in% top_improvers$rep_id)
+
+print(
+  ggplot(improver_data,
+         aes(x = period, y = score, color = rep_name, group = rep_name)) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 2) +
+    labs(
+      title = "Top 5 Improving Representatives",
+      x = "Period",
+      y = "Performance Score",
+      color = "Representative"
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(size = 14, face = "bold"),
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      legend.position = "bottom"
+    )
+)
+
+# Plot decliners
+decliner_data <- scored_data |>
+  filter(rep_id %in% top_decliners$rep_id)
+
+print(
+  ggplot(decliner_data,
+         aes(x = period, y = score, color = rep_name, group = rep_name)) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 2) +
+    labs(
+      title = "Top 5 Declining Representatives",
+      x = "Period",
+      y = "Performance Score",
+      color = "Representative"
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(size = 14, face = "bold"),
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      legend.position = "bottom"
+    )
+)
+```
+
+```{r trend-fallback, eval=(total_periods < 2), results='asis'}
+cat("**Insufficient data for trend analysis.** This report contains data for only",
+    total_periods,
+    "period. Trend charts require at least 2 periods to show performance changes over time.\n")
+```
+
+---
+
+# Improvement Suggestions
+
+```{r suggestions-table, results='asis'}
+if (nrow(suggestions) > 0) {
+  suggestions_display <- suggestions |>
+    select(rep_name, suggestion_category, suggestion_text) |>
+    arrange(suggestion_category, rep_name)
+
+  print(kable(
+    suggestions_display,
+    col.names = c("Representative", "Category", "Recommendation"),
+    align = c("l", "l", "l"),
+    caption = "Coaching Recommendations by Representative"
+  ))
+
+  cat("\n\n**Total Representatives with Recommendations:**",
+      nrow(suggestions), "\n")
+} else {
+  cat("**No specific recommendations at this time.** All representatives",
+      "are performing within expected ranges. Continue monitoring",
+      "performance trends.\n")
+}
+```
+
+---
+
+## Report Metadata
+
+**Generated:** `r format(Sys.time(), '%Y-%m-%d %H:%M:%S %Z')`
+**Data Source:** `r params$input_csv`
+**Total Observations:** `r nrow(scored_data)` rep-period records
+
+---
+
+*This report was generated using the Sales Rep Performance Scoring System. Scores are normalized and adjusted for tenure and territory size to ensure fair, bias-free comparisons.*

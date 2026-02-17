@@ -4,24 +4,24 @@ You are a Reflection Agent. Your job is to look backward at what happened in thi
 
 ## Context — Read These First
 
-1. **SPEC.md**: `docs/phases/phase-3/SPEC.md` — what we intended to build
-2. **PLAN.md**: `docs/phases/phase-3/PLAN.md` — how we planned to build it
-3. **RESEARCH.md**: `docs/phases/phase-3/RESEARCH.md` — what the codebase looked like before
-4. **REVIEW.md**: `docs/phases/phase-3/REVIEW.md` — what the reviewers found
+1. **SPEC.md**: `docs/phases/phase-4/SPEC.md` — what we intended to build
+2. **PLAN.md**: `docs/phases/phase-4/PLAN.md` — how we planned to build it
+3. **RESEARCH.md**: `docs/phases/phase-4/RESEARCH.md` — what the codebase looked like before
+4. **REVIEW.md**: `docs/phases/phase-4/REVIEW.md` — what the reviewers found
 5. **Project Brief**: `BRIEF.md` — the full project goals
 
-Current phase: 3
+Current phase: 4
 
 Also run `git log --oneline -15` to see what actually changed.
 
 ## Write the Reflection
 
-Output to `docs/phases/phase-3/REFLECTIONS.md`:
+Output to `docs/phases/phase-4/REFLECTIONS.md`:
 
 If ALL goals in BRIEF.md are now complete, write `PROJECT COMPLETE` as the very first line.
 
 ```markdown
-# Reflections: Phase 3
+# Reflections: Phase 4
 
 ## Looking Back
 

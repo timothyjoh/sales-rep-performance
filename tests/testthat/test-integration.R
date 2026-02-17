@@ -109,6 +109,52 @@ test_that("scoring pipeline preserves all input columns", {
   expect_true(all(original_cols %in% names(result)))
 })
 
+# Suggestions Engine Integration Tests
+test_that("generate_suggestions works with real scored data", {
+  source(file.path(rprojroot::find_root("DESCRIPTION"),
+                   "R", "generate_suggestions.R"))
+
+  scored_data <- read.csv(
+    file.path(rprojroot::find_root("DESCRIPTION"), "data", "scored_reps.csv"),
+    stringsAsFactors = FALSE
+  )
+
+  suggestions <- generate_suggestions(scored_data)
+
+  expect_true(is.data.frame(suggestions))
+  expect_true(all(c("rep_id", "rep_name", "suggestion_category",
+                     "suggestion_text") %in% names(suggestions)))
+
+  # Scored data has diverse scores, expect at least some suggestions
+  expect_true(nrow(suggestions) > 0)
+  expect_true(nrow(suggestions) <= nrow(scored_data))
+
+  # Validate category values
+  valid_categories <- c("comprehensive_coaching", "mentorship",
+                        "conversion_training", "increase_outreach",
+                        "deal_sizing")
+  expect_true(all(suggestions$suggestion_category %in% valid_categories))
+
+  # Validate text is non-empty
+  expect_true(all(nchar(suggestions$suggestion_text) > 0))
+})
+
+test_that("suggestions engine handles single-period data", {
+  source(file.path(rprojroot::find_root("DESCRIPTION"),
+                   "R", "generate_suggestions.R"))
+
+  scored_data <- read.csv(
+    file.path(rprojroot::find_root("DESCRIPTION"), "data", "scored_reps.csv"),
+    stringsAsFactors = FALSE
+  )
+  single_period <- scored_data[scored_data$period == "Q1-2025", ]
+
+  suggestions <- generate_suggestions(single_period)
+
+  expect_true(is.data.frame(suggestions))
+  expect_true(nrow(suggestions) <= nrow(single_period))
+})
+
 test_that("scoring with custom weights produces different results", {
   data_path <- file.path(
     rprojroot::find_root("DESCRIPTION"), "data", "sample_reps.csv"

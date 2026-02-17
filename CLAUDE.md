@@ -33,6 +33,21 @@ Rscript scripts/score_data.R
 Rscript -e "shiny::runApp('app.R')"
 ```
 
+### Generate Executive Report
+```bash
+Rscript scripts/generate_report.R
+```
+
+### Generate PDF Report (requires LaTeX)
+```bash
+Rscript scripts/generate_report.R --output pdf
+```
+
+### Generate Report from Custom Data
+```bash
+Rscript scripts/generate_report.R --input data/custom_scored.csv
+```
+
 ## Scoring Methodology
 The scoring engine calculates fair, bias-free productivity scores (0-100) using three normalized dimensions:
 - **Activity Quality (33.3%)**: Calls, followups, and meetings, adjusted for tenure and territory size
@@ -53,6 +68,6 @@ This project follows an iterative phase-based development approach:
 - **Phase 1** (COMPLETE): Data model + sample data + project scaffolding
 - **Phase 2** (COMPLETE): Scoring engine with normalization + configurable weights
 - **Phase 3** (COMPLETE): Shiny dashboard with rankings, visualizations, and live weight sliders
-- **Phase 4**: Quarto executive report + improvement suggestions engine
+- **Phase 4** (COMPLETE): Quarto executive report + improvement suggestions engine
 
 Refer to `BRIEF.md` for complete project requirements and `docs/phases/phase-N/SPEC.md` for phase-specific specifications.

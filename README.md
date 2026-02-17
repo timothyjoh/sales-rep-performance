@@ -36,7 +36,7 @@ A fair, bias-free sales rep productivity scoring system built in R. Normalizes p
 
 2. **Install R dependencies**
    ```bash
-   Rscript -e "install.packages(c('dplyr', 'tibble', 'purrr', 'shiny', 'shinydashboard', 'DT', 'plotly', 'testthat', 'covr', 'rprojroot'), repos='https://cloud.r-project.org/')"
+   Rscript -e "install.packages(c('dplyr', 'tibble', 'purrr', 'shiny', 'shinydashboard', 'DT', 'plotly', 'ggplot2', 'knitr', 'rmarkdown', 'tidyr', 'testthat', 'covr', 'rprojroot'), repos='https://cloud.r-project.org/')"
    ```
 
 3. **Verify installation**
@@ -132,6 +132,36 @@ Rscript -e "shiny::runApp('app.R')"
 
 See AGENTS.md for detailed usage instructions.
 
+## Executive Reporting
+
+Generate polished HTML reports for leadership with top performers, trends, and coaching recommendations.
+
+**Generate report:**
+```bash
+Rscript scripts/generate_report.R
+```
+
+**Report sections:**
+- **Executive Summary** — Total reps, average score, score range, analysis period
+- **Top Performers** — Top 10 reps with overall and dimension scores
+- **Score Distributions** — Histogram of overall scores, grouped bar chart of dimensions
+- **Trend Analysis** — Top 5 improving/declining reps over quarters
+- **Improvement Suggestions** — Rule-based coaching recommendations
+
+**Output:** `reports/executive_report_<YYYY-MM-DD>.html` — Shareable static report (no R server needed)
+
+## Improvement Suggestions
+
+Rule-based coaching recommendations identify specific development opportunities:
+
+- **High activity + Low conversion** — Focus on meeting quality and follow-up techniques
+- **Low activity + High conversion** — Increase outreach volume to capitalize on strong conversion skills
+- **High conversion + Low revenue** — Focus on deal sizing and upselling
+- **Low overall score (<40)** — Schedule comprehensive coaching session
+- **High overall score (>85)** — Consider for mentorship or leadership development
+
+Suggestions are integrated into executive reports and help managers prioritize coaching efforts.
+
 ## Project Status
 
 ### Phase 1: Project Foundation & Sample Data Generation — COMPLETE
@@ -154,9 +184,13 @@ See AGENTS.md for detailed usage instructions.
 - CSV upload, filtering, and export
 - Debug mode for troubleshooting
 
-### Phase 4: Quarto Reports & Improvement Suggestions
-- Polished HTML/PDF executive reports
-- Automated improvement suggestion engine
+### Phase 4: Quarto Reports & Improvement Suggestions — COMPLETE
+- Polished HTML executive reports with professional formatting
+- Rule-based improvement suggestions engine with 5 coaching patterns
+- Report generation script with CLI arguments
+- 100% test coverage maintained
+
+**PROJECT COMPLETE** — All BRIEF.md requirements delivered.
 
 ## Documentation
 

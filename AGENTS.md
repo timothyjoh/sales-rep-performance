@@ -13,7 +13,7 @@ A sales rep productivity scoring system built in R. Generates fair, bias-free pe
 - **Shiny + shinydashboard** — Interactive dashboard
 - **DT** — Interactive data tables
 - **plotly** — Interactive charts with hover tooltips
-- Future: Quarto (reports)
+- **Quarto** — Static executive reports (HTML/PDF)
 
 ## Prerequisites
 1. **R 4.0 or higher** installed
@@ -32,7 +32,7 @@ cd sales-rep-performance
 
 ### 2. Install R package dependencies
 ```bash
-Rscript -e "install.packages(c('dplyr', 'tibble', 'purrr', 'testthat', 'covr', 'rprojroot'), repos='https://cloud.r-project.org/')"
+Rscript -e "install.packages(c('dplyr', 'tibble', 'purrr', 'shiny', 'shinydashboard', 'DT', 'plotly', 'ggplot2', 'knitr', 'rmarkdown', 'tidyr', 'testthat', 'covr', 'rprojroot'), repos='https://cloud.r-project.org/')"
 ```
 
 ### 3. Verify installation
@@ -158,7 +158,7 @@ Follow the [tidyverse style guide](https://style.tidyverse.org/):
 
 ```bash
 # Install dependencies
-Rscript -e "install.packages(c('dplyr', 'tibble', 'purrr', 'testthat', 'covr', 'rprojroot'), repos='https://cloud.r-project.org/')"
+Rscript -e "install.packages(c('dplyr', 'tibble', 'purrr', 'shiny', 'shinydashboard', 'DT', 'plotly', 'ggplot2', 'knitr', 'rmarkdown', 'tidyr', 'testthat', 'covr', 'rprojroot'), repos='https://cloud.r-project.org/')"
 
 # Generate sample data
 Rscript scripts/generate_data.R
@@ -171,6 +171,9 @@ Rscript -e "testthat::test_dir('tests/testthat')"
 
 # Generate coverage report
 Rscript scripts/coverage_report.R
+
+# Generate executive report (requires Quarto CLI)
+Rscript scripts/generate_report.R
 ```
 
 ## Troubleshooting
@@ -197,7 +200,10 @@ sales-rep-performance/
 │   ├── normalization.R             # Tenure, territory, quota normalization
 │   ├── dimension_scoring.R         # Activity, conversion, revenue scoring
 │   ├── calculate_scores.R          # Weight validation and scoring pipeline
-│   └── shiny_helpers.R             # Dashboard helper functions (validation, weights)
+│   ├── shiny_helpers.R             # Dashboard helper functions (validation, weights)
+│   └── generate_suggestions.R     # Rule-based coaching recommendations engine
+├── reports/                       # Quarto report templates and generated reports
+│   └── template.qmd              # Parameterized executive report template
 ├── tests/                          # Test suite
 │   ├── testthat.R                  # Test runner (standard testthat entry point)
 │   └── testthat/
@@ -209,11 +215,14 @@ sales-rep-performance/
 │       ├── test-integration.R           # End-to-end integration tests
 │       ├── test-shiny_helpers.R        # Tests for dashboard helper functions
 │       ├── test-app.R                  # shinytest2 E2E dashboard tests
-│       └── test-app-manual.R          # Manual test checklist for UX validation
+│       ├── test-app-manual.R          # Manual test checklist for UX validation
+│       ├── test-generate_suggestions.R  # Tests for suggestions engine
+│       └── test-report-generation.R     # E2E report generation tests
 ├── scripts/                        # Executable scripts
 │   ├── generate_data.R             # Generate sample CSV data
 │   ├── score_data.R                # Calculate productivity scores
-│   └── coverage_report.R           # Generate code coverage report
+│   ├── coverage_report.R           # Generate code coverage report
+│   └── generate_report.R          # Generate executive Quarto report
 ├── data/                           # Generated data files
 │   ├── sample_reps.csv             # Sample sales rep data (20 reps x 4 quarters)
 │   └── scored_reps.csv             # Scored output (80 rows x 15 columns)
@@ -223,6 +232,131 @@ sales-rep-performance/
 ├── BRIEF.md                        # Project requirements and business context
 └── README.md                       # Getting started guide
 ```
+
+## Executive Report Generation
+
+### Prerequisites
+
+#### Quarto CLI Installation
+Quarto CLI must be installed on your system (not an R package):
+
+**Mac:**
+```bash
+brew install quarto
+```
+
+**Linux/Windows:**
+Visit https://quarto.org/docs/get-started/
+
+**Verify installation:**
+```bash
+quarto --version
+# Expected: 1.3.0 or higher
+```
+
+#### Optional: LaTeX for PDF Output
+PDF rendering requires LaTeX (optional, HTML is default format):
+```bash
+# Install TinyTeX via Quarto
+quarto install tinytex
+
+# Or verify existing LaTeX installation
+pdflatex --version
+```
+
+### Generate Executive Report
+
+**Command:**
+```bash
+Rscript scripts/generate_report.R
+```
+
+**Output:** `reports/executive_report_<YYYY-MM-DD>.html`
+
+**What the report includes:**
+- Executive summary with key metrics (total reps, average score, score range)
+- Top 10 performers table with dimension scores
+- Score distribution histogram and dimension breakdown charts
+- Trend analysis showing top 5 improving/declining reps over time
+- Improvement suggestions table with coaching recommendations
+
+### Customize Report Parameters
+
+**Use custom input file:**
+```bash
+Rscript scripts/generate_report.R --input data/custom_scored.csv
+```
+
+**Generate PDF format (requires LaTeX):**
+```bash
+Rscript scripts/generate_report.R --output pdf
+```
+
+**Specify output directory:**
+```bash
+Rscript scripts/generate_report.R --output-dir custom_reports/
+```
+
+### Improvement Suggestions Engine
+
+The report includes rule-based coaching recommendations based on dimension score patterns:
+
+**Rule 1: High Activity (>75) + Low Conversion (<50)**
+- **Suggestion:** Focus on meeting quality and follow-up techniques to improve conversion rate
+- **Rationale:** High activity indicates strong outreach, but poor conversion suggests skill gap in closing
+
+**Rule 2: Low Activity (<40) + High Conversion (>70)**
+- **Suggestion:** Increase outreach volume to capitalize on strong conversion skills
+- **Rationale:** Strong closing ability, but insufficient pipeline volume limits results
+
+**Rule 3: High Conversion (>75) + Low Revenue (<50)**
+- **Suggestion:** Focus on deal sizing and upselling to increase revenue per closed deal
+- **Rationale:** Good at closing deals, but small deal sizes limit revenue contribution
+
+**Rule 4: Low Overall Score (<40)**
+- **Suggestion:** Schedule comprehensive coaching session to identify skill gaps and barriers
+- **Rationale:** Struggling across multiple dimensions requires holistic intervention
+- **Priority:** This rule takes precedence over dimension-specific patterns (most critical need)
+
+**Rule 5: High Overall Score (>85)**
+- **Suggestion:** Consider for mentorship role or leadership development
+- **Rationale:** Top performers can help develop others and take on leadership opportunities
+
+**Edge Cases Handled:**
+- Reps with mid-range scores (40-75 all dimensions): No suggestion (performing within expectations)
+- Reps with NA dimension scores: Skipped (insufficient data for recommendation)
+- Multiple matching rules: Returns most critical suggestion per rep (priority ordering)
+
+### Viewing Generated Reports
+
+**Mac:**
+```bash
+open reports/executive_report_<YYYY-MM-DD>.html
+```
+
+**Linux:**
+```bash
+xdg-open reports/executive_report_<YYYY-MM-DD>.html
+```
+
+**Windows:**
+```cmd
+start reports/executive_report_<YYYY-MM-DD>.html
+```
+
+### Troubleshooting
+
+**Error: "Quarto CLI not found"**
+Install Quarto: `brew install quarto` (Mac) or visit https://quarto.org/docs/get-started/
+
+**Error: "Template not found"**
+Ensure you're running command from project root directory (where DESCRIPTION file is located)
+
+**Error: "Input file not found"**
+Generate scored data first: `Rscript scripts/score_data.R`
+
+**PDF rendering fails**
+Install LaTeX: `quarto install tinytex` or verify pdflatex installed
 
 ## Dashboard Usage
 
@@ -274,5 +408,5 @@ Your default browser will open automatically. If not, navigate to the URL shown 
 - **Slow scoring**: Check console for timing logs; datasets > 1000 rows may exceed 500ms
 
 ## Phase Status
-**Current Phase:** Phase 3 — COMPLETE
-**Next Phase:** Phase 4 — Quarto Executive Report
+**Current Phase:** Phase 4 — COMPLETE
+**Project Status:** ALL PHASES COMPLETE

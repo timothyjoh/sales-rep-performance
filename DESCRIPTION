@@ -14,7 +14,10 @@ Imports:
     shinydashboard,
     DT,
     plotly,
-    ggplot2
+    ggplot2,
+    knitr,
+    rmarkdown,
+    tidyr
 Suggests:
     testthat (>= 3.0.0),
     covr,
