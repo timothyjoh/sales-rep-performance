@@ -1,0 +1,17 @@
+Package: salesrepperformance
+Title: Sales Rep Performance Scoring System
+Version: 0.1.0
+Authors@R: person("Developer", "Team", email = "dev@example.com", role = c("aut", "cre"))
+Description: Sales rep productivity scoring system with fair, bias-free performance metrics.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports:
+    dplyr,
+    tibble,
+    purrr
+Suggests:
+    testthat (>= 3.0.0),
+    covr,
+    rprojroot
+Config/testthat/edition: 3
